@@ -195,12 +195,24 @@ describe("suggestSessionPattern", () => {
     });
   });
 
-  describe("non-path-bearing tool surfaces", () => {
-    it("returns * for extension tools", () => {
+  describe("extension tool surfaces", () => {
+    it("returns * for extension tools without a path", () => {
       const result = suggestSessionPattern("my_extension_tool", "*");
       expect(result).toMatchObject({
         surface: "my_extension_tool",
         pattern: "*",
+      });
+    });
+
+    it("derives a path pattern for extension tools with a path", () => {
+      const result = suggestSessionPattern(
+        "my_extension_tool",
+        "/tmp/data/file.txt",
+      );
+      expect(result).toEqual({
+        surface: "my_extension_tool",
+        pattern: "/tmp/data/*",
+        label: 'Yes, allow my_extension_tool "/tmp/data/*" for this session',
       });
     });
   });

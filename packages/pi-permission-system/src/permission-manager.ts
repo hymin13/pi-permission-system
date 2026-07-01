@@ -276,6 +276,7 @@ export class PermissionManager implements ScopedPermissionManager {
         intent.surface,
         fullRules,
         this.platform,
+        true,
       );
     }
 
@@ -301,9 +302,10 @@ export class PermissionManager implements ScopedPermissionManager {
 /**
  * Evaluate a normalized surface/values triple and shape the result.
  *
- * Path surfaces use {@link evaluateAnyValue} (last-match-wins across equivalent
- * aliases); every other surface keeps {@link evaluateFirst}. Shared by the
- * `"tool"` and `"path-values"` branches of {@link PermissionManager.check}.
+ * Path-value intents use {@link evaluateAnyValue} (last-match-wins across
+ * equivalent aliases), even for extension-tool surfaces; plain tool intents
+ * keep {@link evaluateFirst}. Shared by the `"tool"` and `"path-values"`
+ * branches of {@link PermissionManager.check}.
  */
 function buildCheckResult(
   surface: string,
@@ -313,10 +315,12 @@ function buildCheckResult(
   toolName: string,
   fullRules: Ruleset,
   platform: NodeJS.Platform,
+  pathValues = false,
 ): PermissionCheckResult {
-  const { rule, value } = PATH_SURFACES.has(surface)
-    ? evaluateAnyValue(surface, values, fullRules, platform)
-    : evaluateFirst(surface, values, fullRules, platform);
+  const { rule, value } =
+    pathValues || PATH_SURFACES.has(surface)
+      ? evaluateAnyValue(surface, values, fullRules, platform)
+      : evaluateFirst(surface, values, fullRules, platform);
 
   // For MCP, replace the normalizer's fallback target with the actual
   // matched candidate value so PermissionCheckResult.target is accurate.

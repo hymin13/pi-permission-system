@@ -275,6 +275,35 @@ describe("buildAccessIntentForSurface", () => {
     }
   });
 
+  it("emits an access-path intent for an arbitrary tool surface with an obvious path", () => {
+    const intent = buildAccessIntentForSurface(
+      "lsp_navigation",
+      "/test/project/src/app.ts",
+      normalizer,
+      undefined,
+    );
+    expect(intent.kind).toBe("access-path");
+    if (intent.kind === "access-path") {
+      expect(intent.surface).toBe("lsp_navigation");
+      expect(intent.path.value()).toBe("/test/project/src/app.ts");
+    }
+  });
+
+  it("keeps an arbitrary tool surface with a non-path value on the tool intent", () => {
+    const intent = buildAccessIntentForSurface(
+      "deploy",
+      "staging",
+      normalizer,
+      "my-agent",
+    );
+    expect(intent).toEqual({
+      kind: "tool",
+      surface: "deploy",
+      input: {},
+      agentName: "my-agent",
+    });
+  });
+
   it("emits a tool intent for a non-path surface (bash)", () => {
     const intent = buildAccessIntentForSurface(
       "bash",

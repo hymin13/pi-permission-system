@@ -9,10 +9,15 @@ describe("getPathBearingToolPath", () => {
     );
   });
 
-  test("returns null for a non-path-bearing tool", () => {
+  test("returns input.path for any non-special tool", () => {
+    expect(getPathBearingToolPath("task", { path: "/src/foo.ts" })).toBe(
+      "/src/foo.ts",
+    );
+  });
+
+  test("returns null for special tool surfaces", () => {
     expect(getPathBearingToolPath("bash", { path: "/src/foo.ts" })).toBeNull();
     expect(getPathBearingToolPath("mcp", { path: "/src/foo.ts" })).toBeNull();
-    expect(getPathBearingToolPath("task", { path: "/src/foo.ts" })).toBeNull();
   });
 
   test("returns null when input has no path", () => {

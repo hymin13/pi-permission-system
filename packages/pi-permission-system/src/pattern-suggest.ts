@@ -1,5 +1,4 @@
 import { prefix, stripBashCommentLines } from "./bash-arity";
-import { PATH_BEARING_TOOLS } from "./path-surfaces";
 import { deriveApprovalPattern } from "./session-rules";
 
 /** The suggestion returned for a "Yes, for this session" dialog option. */
@@ -76,11 +75,12 @@ function buildLabel(pattern: string, surface: string): string {
     case "path":
       return `Yes, allow path "${pattern}" for this session`;
     default:
-      // Path-bearing tools with a specific path pattern show the pattern.
-      if (PATH_BEARING_TOOLS.has(surface) && pattern !== "*") {
+      // Tools with a specific path pattern show the path, including extension
+      // tools that follow the `input.path` convention.
+      if (pattern !== "*") {
         return `Yes, allow ${surface} "${pattern}" for this session`;
       }
-      // Tool surfaces with catch-all or extension tools.
+      // Tool surfaces with catch-all.
       return `Yes, allow tool "${surface}" for this session`;
   }
 }
@@ -118,12 +118,13 @@ export function suggestSessionPattern(
       pattern = deriveApprovalPattern(value);
       break;
     default:
-      // Path-bearing tools: derive a directory-scoped pattern from the path.
-      if (PATH_BEARING_TOOLS.has(surface) && value !== "*") {
+      // Path-bearing tool calls pass the resolved path as `value`; extension
+      // tools can be path-bearing too when they expose `input.path`.
+      if (value !== "*") {
         pattern = deriveApprovalPattern(value);
         break;
       }
-      // Extension tools / fallback.
+      // Non-path tool fallback.
       pattern = "*";
       break;
   }

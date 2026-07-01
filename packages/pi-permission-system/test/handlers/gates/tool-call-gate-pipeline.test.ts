@@ -287,6 +287,26 @@ describe("ToolCallGatePipeline", () => {
       expect(perTool?.[0].kind).toBe("access-path");
     });
 
+    it("emits an access-path intent for an extension tool exposing input.path", async () => {
+      const resolver = makeResolver(makeCheckResult());
+      const inputs = makeGateInputs();
+      const { runner } = makeGateRunner();
+      const pipeline = new ToolCallGatePipeline(resolver, inputs);
+
+      await pipeline.evaluate(
+        makeTcc({
+          toolName: "lsp_navigation",
+          input: { path: "/test/cwd/foo.ts" },
+        }),
+        runner,
+      );
+
+      const perTool = resolver.resolve.mock.calls.find(
+        ([intent]) => intent.surface === "lsp_navigation",
+      );
+      expect(perTool?.[0].kind).toBe("access-path");
+    });
+
     it("keeps a path-bearing tool with no path on the tool intent", async () => {
       const resolver = makeResolver(makeCheckResult());
       const inputs = makeGateInputs();

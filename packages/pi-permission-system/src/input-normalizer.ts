@@ -5,6 +5,8 @@ import type { PathNormalizer } from "./path-normalizer";
 import { PATH_SURFACES } from "./path-surfaces";
 import { getNonEmptyString, toRecord } from "./value-guards";
 
+const NON_PATH_VALUE_SURFACES = new Set(["bash", "mcp", "skill"]);
+
 /**
  * Build the {@link AccessIntent} an external policy query (the `Symbol.for()`
  * service and the event-bus RPC) feeds to the resolver from a `(surface, value)`
@@ -13,9 +15,10 @@ import { getNonEmptyString, toRecord } from "./value-guards";
  * For a path-shaped surface (`path`, `external_directory`, or a path-bearing
  * tool) carrying a non-empty value, it builds an `AccessPath` and emits an
  * `access-path` intent, so the resolver matches the lexical aliases ∪ canonical
- * (symlink-resolved) set — at parity with the gates (#486, #502). Every other
- * surface, and any value-less surface-level query, keeps the `tool` intent so
- * the manager's `normalizeInput` `["*"]` fallback is preserved.
+ * (symlink-resolved) set — at parity with the gates (#486, #502). Other
+ * non-special surfaces also take this branch when the value is visibly a path.
+ * Every other surface, and any value-less surface-level query, keeps the `tool`
+ * intent so the manager's `normalizeInput` `["*"]` fallback is preserved.
  */
 export function buildAccessIntentForSurface(
   surface: string,
@@ -24,7 +27,7 @@ export function buildAccessIntentForSurface(
   agentName: string | undefined,
 ): AccessIntent {
   const pathValue = getNonEmptyString(value);
-  if (pathValue !== null && PATH_SURFACES.has(surface)) {
+  if (pathValue !== null && shouldTreatValueAsPath(surface, pathValue)) {
     return {
       kind: "access-path",
       surface,
@@ -38,6 +41,23 @@ export function buildAccessIntentForSurface(
     input: buildInputForSurface(surface, value),
     agentName,
   };
+}
+
+function shouldTreatValueAsPath(surface: string, value: string): boolean {
+  return (
+    PATH_SURFACES.has(surface) ||
+    (!NON_PATH_VALUE_SURFACES.has(surface) && looksLikePathValue(value))
+  );
+}
+
+function looksLikePathValue(value: string): boolean {
+  return (
+    value.startsWith("/") ||
+    value.startsWith("~") ||
+    value.startsWith(".") ||
+    value.includes("/") ||
+    value.includes("\\")
+  );
 }
 
 /**

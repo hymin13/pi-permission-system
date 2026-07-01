@@ -6,7 +6,7 @@ export function getPathBearingToolPath(
   toolName: string,
   input: unknown,
 ): string | null {
-  if (!PATH_BEARING_TOOLS.has(toolName)) {
+  if (toolName === "bash" || toolName === "mcp") {
     return null;
   }
 
@@ -17,8 +17,8 @@ export function getPathBearingToolPath(
  * Extract the filesystem path a tool will access, for the cross-cutting `path`
  * and `external_directory` gates.
  *
- * Unlike {@link getPathBearingToolPath} (built-in tools only), this recognizes
- * extension and MCP tools so they are no longer exempt from path gating:
+ * Unlike {@link getPathBearingToolPath} (plain `input.path` only), this also
+ * recognizes custom extractor keys and MCP tools:
  *
  * - `bash` → `null` (bash has its own token-based path gates).
  * - Built-in path-bearing tools → `input.path`.

@@ -3630,4 +3630,22 @@ describe("check — path-values intent", () => {
       cleanup();
     }
   });
+
+  it("uses path-alias matching for extension-tool surfaces", () => {
+    const { manager, cleanup } = makeManagerWithConfig({
+      lsp_navigation: { "*": "ask", "src/*": "allow" },
+    });
+    try {
+      const intent: ResolvedAccessIntent = {
+        kind: "path-values",
+        surface: "lsp_navigation",
+        values: [`${cwd}/src/App.jsx`, "src/App.jsx"],
+      };
+      const result = manager.check(intent);
+      expect(result.state).toBe("allow");
+      expect(result.matchedPattern).toBe("src/*");
+    } finally {
+      cleanup();
+    }
+  });
 });
