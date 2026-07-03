@@ -127,6 +127,16 @@ describe("resolveBashCommandCheck", () => {
     expect(resolver.resolve).toHaveBeenCalledTimes(1);
   });
 
+  it("allows an assignment-only segment without consulting bash rules", () => {
+    const resolver = makeResolver(bashResult("ask", "dst=/tmp", "*"));
+
+    const result = resolveBashCommandCheck("dst=/tmp", [], undefined, resolver);
+
+    expect(result.state).toBe("allow");
+    expect(result.command).toBe("dst=/tmp");
+    expect(resolver.resolve).not.toHaveBeenCalled();
+  });
+
   it("fails closed to ask when a non-empty command parses to zero command units", () => {
     const resolver = makeResolver(bashResult("allow", "( rm x )", "*"));
 

@@ -559,9 +559,21 @@ describe("BashProgram", () => {
       ]);
     });
 
-    it("keeps a pure assignment with no command unchanged", async () => {
+    it("skips a pure assignment with no command", async () => {
       const program = await BashProgram.parse("FOO=bar", normalizer);
-      expect(program.commands()).toEqual([{ text: "FOO=bar" }]);
+      expect(program.commands()).toEqual([]);
+    });
+
+    it("skips assignment-only segments in a chain", async () => {
+      const program = await BashProgram.parse("dst=/tmp && cp a b", normalizer);
+      expect(program.commands()).toEqual([{ text: "cp a b" }]);
+    });
+
+    it("still gates commands inside assignment command substitutions", async () => {
+      const program = await BashProgram.parse("ts=$(date)", normalizer);
+      expect(program.commands()).toEqual([
+        { text: "date", context: "command_substitution" },
+      ]);
     });
 
     describe("opaque-payload wrappers", () => {

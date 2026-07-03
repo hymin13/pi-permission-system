@@ -41,7 +41,8 @@ export function describeToolGate(
   formatter: ToolPreviewFormatter,
   accessPath?: AccessPath,
 ): GateDescriptor {
-  const pathValue = getPathBearingToolPath(tcc.toolName, tcc.input) ?? undefined;
+  const pathValue =
+    getPathBearingToolPath(tcc.toolName, tcc.input) ?? undefined;
   const permissionLogContext = formatter.getPermissionLogContext(
     check,
     tcc.input,
@@ -94,11 +95,7 @@ export function describeToolGate(
     },
     decision: {
       surface: tcc.toolName,
-      value: deriveDecisionValue(
-        tcc.toolName,
-        check,
-        pathValue,
-      ),
+      value: deriveDecisionValue(tcc.toolName, check, pathValue),
     },
   };
 }

@@ -25,13 +25,15 @@ import type { PermissionCheckResult } from "#src/types";
  * pattern) to keep it from riding a permissive rule; an explicit `deny`/`ask`
  * on the wrapper is left untouched (`deny > ask > allow`).
  *
- * When `commands` is empty there are two cases. A trivially-empty command (an
+ * When `commands` is empty there are three cases. A trivially-empty command (an
  * empty, whitespace-only, or comment-only line) has genuinely nothing to gate,
- * so the whole `command` is resolved as before. A non-empty command that parsed
- * to zero command units (a parse anomaly or an opaque program) fails closed to
- * a synthetic `ask` so a permissive top-level `*` cannot silently allow an
- * unparseable command (e.g. `cd /repo && git push` riding a top-level allow on
- * the empty-parse path) — #452.
+ * so the whole `command` is resolved as before. An assignment-only shell segment
+ * (`dst=/tmp`) also runs no command, so it is allowed without creating a bogus
+ * bash rule. Any other non-empty command that parsed to zero command units (a
+ * parse anomaly or an opaque program) fails closed to a synthetic `ask` so a
+ * permissive top-level `*` cannot silently allow an unparseable command (e.g.
+ * `cd /repo && git push` riding a top-level allow on the empty-parse path) —
+ * #452.
  *
  * Pure and synchronous: the (async, tree-sitter) parse happens once in the
  * handler, which passes the decomposed `commands` here.
@@ -50,6 +52,15 @@ export function resolveBashCommandCheck(
         input: { command },
         agentName,
       });
+    }
+    if (isAssignmentOnlyCommand(command)) {
+      return {
+        state: "allow",
+        toolName: "bash",
+        source: "bash",
+        origin: "builtin",
+        command,
+      };
     }
     return {
       state: "ask",
@@ -101,4 +112,12 @@ function isTriviallyEmptyCommand(command: string): boolean {
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
   return lines.every((line) => line.startsWith("#"));
+}
+
+function isAssignmentOnlyCommand(command: string): boolean {
+  const text = command.trim();
+  if (!text || /[`$()]/.test(text)) return false;
+  return text
+    .split(/\s+/)
+    .every((part) => /^[A-Za-z_][A-Za-z0-9_]*=.*/.test(part));
 }

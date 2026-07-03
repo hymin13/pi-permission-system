@@ -101,10 +101,14 @@ function collectCommandsInto(
   if (!node.isNamed) return;
   if (COMMAND_ENUM_SKIP.has(node.type)) return;
 
+  if (node.type === "variable_assignment") {
+    collectSubstitutionCommands(node, out);
+    return;
+  }
+
   if (node.type === "command") {
-    out.push(
-      makeUnit(commandUnitText(node), context, isOpaqueWrapperCommand(node)),
-    );
+    const text = commandUnitText(node);
+    if (text) out.push(makeUnit(text, context, isOpaqueWrapperCommand(node)));
     // A command's text already contains any substitution; descend its subtree
     // to ALSO emit the inner commands of command/process substitutions.
     collectSubstitutionCommands(node, out);
@@ -187,8 +191,7 @@ function basename(name: string): string {
  * `command` node's text but must not defeat a rule that gates the underlying
  * command, so matching targets the text from the first non-assignment child
  * (the `command_name`) onward, sliced verbatim to preserve spacing. A pure
- * assignment (`FOO=bar`, no `command_name`) runs no command and is returned
- * unchanged.
+ * assignment (`FOO=bar`, no `command_name`) runs no command and is skipped.
  */
 function commandUnitText(node: TSNode): string {
   for (let i = 0; i < node.childCount; i++) {
@@ -197,7 +200,7 @@ function commandUnitText(node: TSNode): string {
       return node.text.slice(child.startIndex - node.startIndex);
     }
   }
-  return node.text;
+  return "";
 }
 
 function descendCommandChildren(
