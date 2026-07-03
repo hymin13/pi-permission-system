@@ -217,6 +217,21 @@ describe("describeToolGate", () => {
     expect(desc.promptDetails.sessionLabel).toBeDefined();
   });
 
+  it("exposes input.path on extension-tool permission prompts", () => {
+    const desc = describeToolGate(
+      makeTcc({
+        toolName: "read_enclosing",
+        input: { path: "/repo/src/foo.ts", line: 12 },
+      }),
+      makeCheckResult("ask", { toolName: "read_enclosing" }),
+      makeFormatter(),
+      normalizer.forPath("/repo/src/foo.ts"),
+    );
+    expect(desc.promptDetails.path).toBe("/repo/src/foo.ts");
+    expect(desc.logContext.path).toBe("/repo/src/foo.ts");
+    expect(desc.decision.value).toBe("/repo/src/foo.ts");
+  });
+
   it("populates logContext with tool input preview fields", () => {
     const check = makeCheckResult("ask", { toolName: "bash", command: "ls" });
     const desc = describeToolGate(

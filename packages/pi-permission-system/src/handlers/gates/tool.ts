@@ -41,6 +41,7 @@ export function describeToolGate(
   formatter: ToolPreviewFormatter,
   accessPath?: AccessPath,
 ): GateDescriptor {
+  const pathValue = getPathBearingToolPath(tcc.toolName, tcc.input) ?? undefined;
   const permissionLogContext = formatter.getPermissionLogContext(
     check,
     tcc.input,
@@ -79,6 +80,7 @@ export function describeToolGate(
       message: askMessage,
       toolCallId: tcc.toolCallId,
       toolName: tcc.toolName,
+      path: pathValue,
       sessionLabel: suggestion.label,
       ...permissionLogContext,
     },
@@ -87,6 +89,7 @@ export function describeToolGate(
       toolCallId: tcc.toolCallId,
       toolName: tcc.toolName,
       message: askMessage,
+      path: pathValue,
       ...permissionLogContext,
     },
     decision: {
@@ -94,7 +97,7 @@ export function describeToolGate(
       value: deriveDecisionValue(
         tcc.toolName,
         check,
-        getPathBearingToolPath(tcc.toolName, tcc.input) ?? undefined,
+        pathValue,
       ),
     },
   };
