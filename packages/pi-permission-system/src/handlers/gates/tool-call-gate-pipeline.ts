@@ -1,6 +1,7 @@
 import type { AccessPath } from "#src/access-intent/access-path";
 import { BashProgram } from "#src/access-intent/bash/program";
 import type { PathNormalizer } from "#src/path-normalizer";
+import { PATH_BEARING_TOOLS } from "#src/path-surfaces";
 import type { ScopedPermissionResolver } from "#src/permission-resolver";
 import type { SkillPromptEntry } from "#src/skill-prompt-sanitizer";
 import type { ToolAccessExtractorLookup } from "#src/tool-access-extractor-registry";
@@ -162,6 +163,20 @@ export class ToolCallGatePipeline {
     const filePath = getPathBearingToolPath(tcc.toolName, tcc.input);
     if (filePath !== null) {
       const accessPath = normalizer.forPath(filePath);
+      // Structural extension tools with `input.path` are already covered by
+      // the cross-cutting path/external-directory gates above; do not ask again
+      // on the tool-name surface (`read_enclosing`, `lsp_navigation`, ...).
+      if (!PATH_BEARING_TOOLS.has(tcc.toolName)) {
+        return {
+          accessPath,
+          toolCheck: {
+            state: "allow",
+            toolName: tcc.toolName,
+            source: "tool",
+            origin: "builtin",
+          },
+        };
+      }
       return {
         accessPath,
         toolCheck: this.resolver.resolve({

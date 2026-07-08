@@ -287,7 +287,7 @@ describe("ToolCallGatePipeline", () => {
       expect(perTool?.[0].kind).toBe("access-path");
     });
 
-    it("emits an access-path intent for an extension tool exposing input.path", async () => {
+    it("lets extension tools with input.path rely on the cross-cutting path gate", async () => {
       const resolver = makeResolver(makeCheckResult());
       const inputs = makeGateInputs();
       const { runner } = makeGateRunner();
@@ -301,10 +301,16 @@ describe("ToolCallGatePipeline", () => {
         runner,
       );
 
-      const perTool = resolver.resolve.mock.calls.find(
+      const extensionToolCheck = resolver.resolve.mock.calls.find(
         ([intent]) => intent.surface === "lsp_navigation",
       );
-      expect(perTool?.[0].kind).toBe("access-path");
+      expect(extensionToolCheck).toBeUndefined();
+      expect(resolver.resolve).toHaveBeenCalledWith({
+        kind: "access-path",
+        surface: "path",
+        path: expect.anything(),
+        agentName: undefined,
+      });
     });
 
     it("keeps a path-bearing tool with no path on the tool intent", async () => {
