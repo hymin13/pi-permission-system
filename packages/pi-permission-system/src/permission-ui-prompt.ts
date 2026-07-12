@@ -21,6 +21,8 @@ export interface DirectPromptInput {
   source: "tool_call" | "skill_input" | "skill_read";
   agentName: string | null;
   message: string;
+  surface?: string;
+  value?: string;
   toolName?: string;
   skillName?: string;
   path?: string;
@@ -53,6 +55,7 @@ export interface ForwardedPromptInput {
 
 /** Normalized display surface for a direct prompt. */
 function directSurface(input: DirectPromptInput): string | null {
+  if (input.surface) return input.surface;
   if (input.source === "skill_input" || input.source === "skill_read") {
     return "skill";
   }
@@ -62,6 +65,7 @@ function directSurface(input: DirectPromptInput): string | null {
 /** Normalized display value for a direct prompt. */
 function directValue(input: DirectPromptInput): string | null {
   return (
+    input.value ??
     input.command ??
     input.path ??
     input.target ??

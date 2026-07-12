@@ -18,6 +18,10 @@ export interface PromptPermissionDetails {
   source: PermissionReviewSource;
   agentName: string | null;
   message: string;
+  /** Normalized permission surface represented by this prompt. */
+  surface?: string;
+  /** Normalized permission value represented by this prompt. */
+  value?: string;
   toolCallId?: string;
   toolName?: string;
   skillName?: string;
@@ -128,6 +132,8 @@ export class PermissionPrompter implements PermissionPrompterApi {
       source: details.source,
       agentName: details.agentName,
       message: details.message,
+      surface: details.surface ?? null,
+      value: details.value ?? null,
       toolCallId: details.toolCallId ?? null,
       toolName: details.toolName ?? null,
       skillName: details.skillName ?? null,

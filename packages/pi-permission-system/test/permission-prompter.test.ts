@@ -364,6 +364,34 @@ describe("PermissionPrompter", () => {
       );
     });
 
+    it("prefers explicit prompt identity over tool metadata", async () => {
+      mockRequestApproval.mockResolvedValue({
+        approved: true,
+        state: "approved",
+      });
+      const deps = makeDeps();
+      const prompter = new PermissionPrompter(deps);
+      const details = makeDetails({
+        surface: "path",
+        value: "/repo/src/foo.ts",
+        toolName: "read_enclosing",
+        path: "/repo/src/foo.ts",
+      });
+
+      await prompter.prompt(makeCtx(true), details);
+
+      expect(mockRequestApproval).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.any(String),
+        undefined,
+        { source: "tool_call", surface: "path", value: "/repo/src/foo.ts" },
+      );
+      expect(deps.events.emit).toHaveBeenCalledWith(
+        "permissions:ui_prompt",
+        expect.objectContaining({ surface: "path", value: "/repo/src/foo.ts" }),
+      );
+    });
+
     it("passes undefined options to confirmPermission when sessionLabel is absent", async () => {
       mockRequestApproval.mockResolvedValue({
         approved: true,

@@ -59,6 +59,17 @@ describe("SessionApproval", () => {
       source.push("/outside/c/*");
       expect(approval.patterns).toEqual(["/outside/a/*", "/outside/b/*"]);
     });
+
+    it("deduplicates, trims, and freezes pattern arrays", () => {
+      const approval = SessionApproval.multiple("external_directory", [
+        " /outside/a/* ",
+        "/outside/a/*",
+        "",
+        "/outside/b/*",
+      ]);
+      expect(approval.patterns).toEqual(["/outside/a/*", "/outside/b/*"]);
+      expect(Object.isFrozen(approval.patterns)).toBe(true);
+    });
   });
 
   describe("empty patterns (degenerate case)", () => {

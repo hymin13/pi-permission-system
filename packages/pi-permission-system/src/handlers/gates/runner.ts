@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { DecisionReporter } from "#src/decision-reporter";
 import {
   formatDenyReason,
@@ -122,10 +124,13 @@ export class GateRunner {
       canConfirm,
       sessionApproval: descriptor.sessionApproval?.toGateApproval(),
       promptForApproval: async () => {
-        const decision = await this.prompter.prompt({
-          requestId: toolCallId,
+        const promptDetails = {
+          requestId: permissionRequestId(toolCallId, descriptor),
           ...descriptor.promptDetails,
-        });
+          surface: descriptor.decision.surface,
+          value: descriptor.decision.value,
+        };
+        const decision = await this.prompter.prompt(promptDetails);
         autoApproved = decision.autoApproved === true;
         return decision;
       },
@@ -168,4 +173,17 @@ export class GateRunner {
 
     return { action: "allow" };
   }
+}
+
+function permissionRequestId(
+  toolCallId: string,
+  descriptor: Pick<GateDescriptor, "decision">,
+): string {
+  const hash = createHash("sha256")
+    .update(descriptor.decision.surface)
+    .update("\0")
+    .update(descriptor.decision.value)
+    .digest("hex")
+    .slice(0, 12);
+  return `${toolCallId}:${hash}`;
 }

@@ -259,10 +259,10 @@ describe("subagent registry sharing across factory instances", () => {
     );
     expect(request.targetSessionId).toBe(parentSessionId);
     expect(request.requesterSessionId).toBe(childSessionId);
-    // The child persists the original display fields so the parent emits a
-    // non-degraded `permissions:ui_prompt` event (forwarded non-degradation).
+    // The child persists the authoritative permission identity so the parent
+    // emits a non-degraded `permissions:ui_prompt` event (forwarded non-degradation).
     expect(request.source).toBe("tool_call");
-    expect(request.surface).toBe("read");
+    expect(request.surface).toBe("external_directory");
     expect(request.value).toBe(join(externalDir, "secret.txt"));
 
     const result = (await firePromise) as { block?: true };

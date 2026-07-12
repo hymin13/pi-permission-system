@@ -48,18 +48,20 @@ describe("buildDirectUiPrompt", () => {
     });
   });
 
-  it("derives value with command > path > target > skillName > toolName precedence", () => {
+  it("derives value with explicit value > command > path > target > skillName > toolName precedence", () => {
     expect(
       buildDirectUiPrompt({
         requestId: "req-3",
         source: "tool_call",
         agentName: null,
         message: "m",
+        surface: "path",
+        value: "/canonical/etc/hosts",
         toolName: "read",
         path: "/etc/hosts",
         target: "ignored",
-      }).value,
-    ).toBe("/etc/hosts");
+      }),
+    ).toMatchObject({ surface: "path", value: "/canonical/etc/hosts" });
   });
 });
 

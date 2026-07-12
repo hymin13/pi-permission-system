@@ -228,14 +228,57 @@ describe("GateRunner — descriptor path", () => {
     );
   });
 
-  it("passes requestId from toolCallId to prompt", async () => {
+  it("derives a per-gate requestId from the toolCallId and decision identity", async () => {
     const { runner, deps } = makeGateRunner({
       resolveResult: makeCheckResult({ state: "ask", matchedPattern: "*" }),
     });
     await runner.run(makeDescriptor(), null, "tc-42");
     expect(deps.prompt).toHaveBeenCalledWith(
-      expect.objectContaining({ requestId: "tc-42" }),
+      expect.objectContaining({ requestId: expect.stringMatching(/^tc-42:/) }),
     );
+  });
+
+  it("passes the descriptor decision surface and value to the prompt", async () => {
+    const { runner, deps } = makeGateRunner({
+      resolveResult: makeCheckResult({ state: "ask", matchedPattern: "*" }),
+    });
+    await runner.run(
+      makeDescriptor({
+        promptDetails: {
+          source: "tool_call",
+          agentName: null,
+          message: "Allow path?",
+          toolCallId: "tc-1",
+          toolName: "read_enclosing",
+          path: "/repo/src/foo.ts",
+        },
+        decision: { surface: "path", value: "/repo/src/foo.ts" },
+      }),
+      null,
+      "tc-42",
+    );
+    expect(deps.prompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        surface: "path",
+        value: "/repo/src/foo.ts",
+      }),
+    );
+  });
+
+  it("uses distinct prompt IDs for distinct gates in one tool call", async () => {
+    const { runner, deps } = makeGateRunner({
+      resolveResult: makeCheckResult({ state: "ask", matchedPattern: "*" }),
+    });
+    await runner.run(makeDescriptor(), null, "tc-42");
+    await runner.run(
+      makeDescriptor({ decision: { surface: "path", value: "/repo/a.ts" } }),
+      null,
+      "tc-42",
+    );
+    const requestIds = vi
+      .mocked(deps.prompt)
+      .mock.calls.map(([details]) => details.requestId);
+    expect(new Set(requestIds).size).toBe(2);
   });
 
   it("does not call recordSessionApproval when user approves once (no sessionApproval)", async () => {

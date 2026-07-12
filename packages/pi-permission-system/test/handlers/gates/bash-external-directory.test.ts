@@ -241,10 +241,11 @@ describe("describeBashExternalDirectoryGate", () => {
     expect(isGateDescriptor(result)).toBe(true);
     const desc = result as GateDescriptor;
     expect(desc.preCheck?.state).toBe("deny");
-    // Both paths are uncovered (neither is allow), so both patterns are included.
+    // Both paths are uncovered, but the approval value object deduplicates
+    // sibling files to one reusable directory pattern.
     expect(desc.sessionApproval).toBeDefined();
     if (!desc.sessionApproval) return;
-    expect(desc.sessionApproval.patterns.length).toBe(2);
+    expect(desc.sessionApproval.patterns).toEqual(["/outside/*"]);
   });
 
   it("only includes uncovered paths when some are session-covered", async () => {

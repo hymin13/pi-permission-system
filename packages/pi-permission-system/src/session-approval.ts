@@ -7,8 +7,12 @@
 export class SessionApproval {
   private constructor(
     readonly surface: string,
-    readonly patterns: readonly string[],
-  ) {}
+    patterns: readonly string[],
+  ) {
+    this.patterns = Object.freeze(uniquePatterns(patterns));
+  }
+
+  readonly patterns: readonly string[];
 
   /** Create an approval for a single pattern (the common case). */
   static single(surface: string, pattern: string): SessionApproval {
@@ -23,7 +27,7 @@ export class SessionApproval {
     surface: string,
     patterns: readonly string[],
   ): SessionApproval {
-    return new SessionApproval(surface, [...patterns]);
+    return new SessionApproval(surface, patterns);
   }
 
   /** Representative pattern for the interactive prompt — the first, if any. */
@@ -40,4 +44,8 @@ export class SessionApproval {
     if (pattern === undefined) return undefined;
     return { surface: this.surface, pattern };
   }
+}
+
+function uniquePatterns(patterns: readonly string[]): string[] {
+  return [...new Set(patterns.map((p) => p.trim()).filter(Boolean))];
 }
