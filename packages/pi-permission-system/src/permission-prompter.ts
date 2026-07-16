@@ -8,7 +8,10 @@ import {
 } from "./permission-events";
 import { buildDirectUiPrompt } from "./permission-ui-prompt";
 import type { ReviewLogger } from "./session-logger";
-import { shouldAutoApprovePermissionState } from "./yolo-mode";
+import {
+  isYoloAutoApprovalEligible,
+  shouldAutoApprovePermissionState,
+} from "./yolo-mode";
 
 export type PermissionReviewSource = "tool_call" | "skill_input" | "skill_read";
 
@@ -22,6 +25,8 @@ export interface PromptPermissionDetails {
   surface?: string;
   /** Normalized permission value represented by this prompt. */
   value?: string;
+  /** Matched config/session pattern, when this prompt came from an explicit rule. */
+  matchedPattern?: string;
   toolCallId?: string;
   toolName?: string;
   skillName?: string;
@@ -77,7 +82,13 @@ export class PermissionPrompter implements PermissionPrompterApi {
     ctx: ExtensionContext,
     details: PromptPermissionDetails,
   ): Promise<PermissionPromptDecision> {
-    if (shouldAutoApprovePermissionState("ask", this.deps.config.current())) {
+    if (
+      shouldAutoApprovePermissionState(
+        "ask",
+        this.deps.config.current(),
+        details,
+      )
+    ) {
       this.writeReviewEntry("permission_request.auto_approved", details);
       return { approved: true, state: "approved", autoApproved: true };
     }
@@ -101,6 +112,9 @@ export class PermissionPrompter implements PermissionPrompterApi {
         source: uiPrompt.source,
         surface: uiPrompt.surface,
         value: uiPrompt.value,
+        ...(isYoloAutoApprovalEligible(details)
+          ? {}
+          : { yoloAutoApprove: false }),
       },
     );
 
@@ -134,6 +148,7 @@ export class PermissionPrompter implements PermissionPrompterApi {
       message: details.message,
       surface: details.surface ?? null,
       value: details.value ?? null,
+      matchedPattern: details.matchedPattern ?? null,
       toolCallId: details.toolCallId ?? null,
       toolName: details.toolName ?? null,
       skillName: details.skillName ?? null,

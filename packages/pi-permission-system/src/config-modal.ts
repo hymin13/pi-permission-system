@@ -45,6 +45,7 @@ const COMMAND_ARGUMENTS = [
 ] as const;
 const USAGE_TEXT =
   "Usage: /permission-system [show|path|reset|help] (or run /permission-system with no args to open settings modal)";
+const YOLO_USAGE_TEXT = "Usage: /yolo [on|off]";
 
 function cloneDefaultConfig(): PermissionSystemExtensionConfig {
   return {
@@ -232,10 +233,45 @@ function handleArgs(
   return true;
 }
 
+function yoloModeFromArgs(args: string, current: boolean): boolean | null {
+  const normalized = args.trim().toLowerCase();
+  if (!normalized) return !current;
+  if (normalized === "on") return true;
+  if (normalized === "off") return false;
+  return null;
+}
+
+function handleYoloCommand(
+  args: string,
+  ctx: ExtensionCommandContext,
+  controller: PermissionSystemConfigController,
+): void {
+  const current = controller.config.current();
+  const yoloMode = yoloModeFromArgs(args, current.yoloMode);
+  if (yoloMode === null) {
+    ctx.ui.notify(YOLO_USAGE_TEXT, "warning");
+    return;
+  }
+
+  controller.config.save({ ...current, yoloMode }, ctx);
+  ctx.ui.notify(`YOLO mode ${toOnOff(yoloMode)}.`, "info");
+}
+
 export function registerPermissionSystemCommand(
   pi: ExtensionAPI,
   controller: PermissionSystemConfigController,
 ): void {
+  pi.registerCommand("yolo", {
+    description: "Toggle pi-permission-system YOLO mode",
+    getArgumentCompletions: (prefix) => {
+      const normalized = prefix.trim().toLowerCase();
+      return ON_OFF.flatMap((value) =>
+        value.startsWith(normalized) ? [{ value, label: value }] : [],
+      );
+    },
+    handler: async (args, ctx) => handleYoloCommand(args, ctx, controller),
+  });
+
   pi.registerCommand("permission-system", {
     description:
       "Configure pi-permission-system logging and yolo-mode behavior",

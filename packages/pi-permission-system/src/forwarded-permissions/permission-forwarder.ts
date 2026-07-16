@@ -102,7 +102,9 @@ function getSessionId(ctx: ForwarderContext): string {
     if (typeof sessionId === "string" && sessionId.trim()) {
       return sessionId.trim();
     }
-  } catch {}
+  } catch {
+    // Missing session id is handled by the "unknown" fallback below.
+  }
 
   return "unknown";
 }
@@ -412,6 +414,7 @@ export class PermissionForwarder implements ApprovalRequester, InboxProcessor {
             source: forwarded.source,
             surface: forwarded.surface,
             value: forwarded.value,
+            yoloAutoApprove: forwarded.yoloAutoApprove,
           }
         : {}),
     };
@@ -506,7 +509,12 @@ export class PermissionForwarder implements ApprovalRequester, InboxProcessor {
       approved: false,
       state: "denied",
     };
-    if (shouldAutoApprovePermissionState("ask", this.config.current())) {
+    if (
+      request.yoloAutoApprove !== false &&
+      shouldAutoApprovePermissionState("ask", this.config.current(), {
+        surface: request.surface,
+      })
+    ) {
       this.logger.review(
         "forwarded_permission.auto_approved",
         forwardedPermissionLogDetails,

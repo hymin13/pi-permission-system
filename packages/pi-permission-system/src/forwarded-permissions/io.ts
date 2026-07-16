@@ -324,6 +324,10 @@ export function readForwardedPermissionRequest(
       source: asUiPromptSource(parsed.source),
       surface: asNullableDisplayString(parsed.surface),
       value: asNullableDisplayString(parsed.value),
+      yoloAutoApprove:
+        typeof parsed.yoloAutoApprove === "boolean"
+          ? parsed.yoloAutoApprove
+          : undefined,
     };
   } catch (error) {
     logPermissionForwardingWarning(

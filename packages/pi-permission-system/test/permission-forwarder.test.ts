@@ -309,6 +309,61 @@ describe("processInbox", () => {
     }
   });
 
+  test("prompts forwarded requests that are marked yolo-ineligible", async () => {
+    const root = mkdtempSync(join(tmpdir(), "permission-forwarding-"));
+    try {
+      const forwardingDir = join(root, "forwarding");
+      const location = createPermissionForwardingLocation(
+        forwardingDir,
+        "parent-session",
+      );
+      mkdirSync(location.requestsDir, { recursive: true });
+      mkdirSync(location.responsesDir, { recursive: true });
+      writeFileSync(
+        join(location.requestsDir, "req-forwarded-ask.json"),
+        JSON.stringify({
+          id: "req-forwarded-ask",
+          createdAt: Date.now(),
+          requesterSessionId: "child-session",
+          targetSessionId: "parent-session",
+          requesterAgentName: "Explore",
+          message: "Allow git push?",
+          source: "tool_call",
+          surface: "bash",
+          value: "git push",
+          yoloAutoApprove: false,
+        }),
+        "utf-8",
+      );
+
+      const requestPermissionDecisionFromUi = vi
+        .fn()
+        .mockResolvedValue({ approved: true, state: "approved" as const });
+      const forwarder = new PermissionForwarder(
+        makeDeps({
+          forwardingDir,
+          requestPermissionDecisionFromUi,
+          config: {
+            current: () => ({ ...DEFAULT_EXTENSION_CONFIG, yoloMode: true }),
+          },
+        }),
+      );
+
+      await forwarder.processInbox(
+        makeCtx({
+          hasUI: true,
+          sessionManager: {
+            getSessionId: vi.fn(() => "parent-session"),
+          },
+        }),
+      );
+
+      expect(requestPermissionDecisionFromUi).toHaveBeenCalled();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   test("recreates a missing responses/ directory and still writes the response", async () => {
     const root = mkdtempSync(join(tmpdir(), "permission-forwarding-"));
     try {

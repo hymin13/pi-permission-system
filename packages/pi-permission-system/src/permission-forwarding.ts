@@ -50,6 +50,7 @@ export interface ForwardedPromptDisplay {
   source: PermissionUiPromptSource;
   surface: string | null;
   value: string | null;
+  yoloAutoApprove?: boolean;
 }
 
 export type ForwardedPermissionRequest = {
@@ -68,6 +69,7 @@ export type ForwardedPermissionRequest = {
   source?: PermissionUiPromptSource;
   surface?: string | null;
   value?: string | null;
+  yoloAutoApprove?: boolean;
 };
 
 export type ForwardedPermissionResponse = {

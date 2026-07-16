@@ -129,6 +129,7 @@ export class GateRunner {
           ...descriptor.promptDetails,
           surface: descriptor.decision.surface,
           value: descriptor.decision.value,
+          matchedPattern: check.matchedPattern,
         };
         const decision = await this.prompter.prompt(promptDetails);
         autoApproved = decision.autoApproved === true;

@@ -138,6 +138,35 @@ describe("PermissionPrompter", () => {
 
       expect(mockRequestApproval).not.toHaveBeenCalled();
     });
+
+    it("keeps explicitly-asked bash commands interactive in yolo mode", async () => {
+      const deps = makeDeps({
+        config: makeConfigReader({ yoloMode: true }),
+      });
+      const prompter = new PermissionPrompter(deps);
+
+      await prompter.prompt(
+        makeCtx(true),
+        makeDetails({
+          surface: "bash",
+          toolName: "bash",
+          command: "git push",
+          matchedPattern: "git *",
+        }),
+      );
+
+      expect(mockRequestApproval).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.any(String),
+        undefined,
+        {
+          source: "tool_call",
+          surface: "bash",
+          value: "git push",
+          yoloAutoApprove: false,
+        },
+      );
+    });
   });
 
   // ── Non-yolo path ────────────────────────────────────────────────────────

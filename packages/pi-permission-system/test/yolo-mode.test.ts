@@ -4,6 +4,7 @@ import { DEFAULT_EXTENSION_CONFIG } from "#src/extension-config";
 import { resolvePermissionForwardingTargetSessionId } from "#src/permission-forwarding";
 import {
   canResolveAskPermissionRequest,
+  isYoloAutoApprovalEligible,
   shouldAutoApprovePermissionState,
 } from "#src/yolo-mode";
 
@@ -22,6 +23,24 @@ describe("shouldAutoApprovePermissionState", () => {
     expect(shouldAutoApprovePermissionState("ask", makeConfig(true))).toBe(
       true,
     );
+  });
+
+  test("returns false for an explicitly-asked bash command", () => {
+    expect(
+      shouldAutoApprovePermissionState("ask", makeConfig(true), {
+        surface: "bash",
+        matchedPattern: "git *",
+      }),
+    ).toBe(false);
+  });
+
+  test("returns true for an explicitly-asked path", () => {
+    expect(
+      shouldAutoApprovePermissionState("ask", makeConfig(true), {
+        surface: "path",
+        matchedPattern: "*.md",
+      }),
+    ).toBe(true);
   });
 
   test("returns false for 'ask' when yolo mode is off", () => {
@@ -46,6 +65,18 @@ describe("shouldAutoApprovePermissionState", () => {
     expect(shouldAutoApprovePermissionState("deny", makeConfig(true))).toBe(
       false,
     );
+  });
+});
+
+describe("isYoloAutoApprovalEligible", () => {
+  test("only explicit bash ask rules are ineligible", () => {
+    expect(
+      isYoloAutoApprovalEligible({ surface: "bash", matchedPattern: "git *" }),
+    ).toBe(false);
+    expect(
+      isYoloAutoApprovalEligible({ surface: "path", matchedPattern: "*.env" }),
+    ).toBe(true);
+    expect(isYoloAutoApprovalEligible({ toolName: "bash" })).toBe(true);
   });
 });
 

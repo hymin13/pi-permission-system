@@ -7,6 +7,12 @@ export interface AskPermissionResolutionOptions {
   isSubagent: boolean;
 }
 
+export interface YoloPermissionContext {
+  surface?: string | null;
+  toolName?: string | null;
+  matchedPattern?: string | null;
+}
+
 export function isYoloModeEnabled(
   config: PermissionSystemExtensionConfig,
 ): boolean {
@@ -17,8 +23,20 @@ export function isYoloModeEnabled(
 export function shouldAutoApprovePermissionState(
   state: PermissionState,
   config: PermissionSystemExtensionConfig,
+  context: YoloPermissionContext = {},
 ): boolean {
-  return state === "ask" && isYoloModeEnabled(config);
+  return (
+    state === "ask" &&
+    isYoloModeEnabled(config) &&
+    isYoloAutoApprovalEligible(context)
+  );
+}
+
+export function isYoloAutoApprovalEligible(
+  context: YoloPermissionContext,
+): boolean {
+  const surface = (context.surface ?? context.toolName)?.trim();
+  return surface !== "bash" || !context.matchedPattern;
 }
 
 export function canResolveAskPermissionRequest(

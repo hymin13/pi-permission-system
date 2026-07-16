@@ -126,6 +126,67 @@ test("permission-system command completions expose top-level config actions", ()
   }
 });
 
+test("yolo command toggles yoloMode and accepts explicit on/off", async () => {
+  let config: PermissionSystemExtensionConfig = { ...DEFAULT_EXTENSION_CONFIG };
+  const configStore: CommandConfigStore = {
+    current: () => config,
+    save: (next) => {
+      config = next;
+    },
+  };
+  const controller = {
+    config: configStore,
+    configPath: "/fake/config.json",
+    getActiveAgentConfigRules: () => [] as Ruleset,
+  };
+
+  type RegisteredCommand = {
+    description: string;
+    getArgumentCompletions?: (
+      argumentPrefix: string,
+    ) => Array<{ value: string; label: string; description?: string }> | null;
+    handler: (args: string, ctx: CommandContextStub) => Promise<void>;
+  };
+  const commands = new Map<string, RegisteredCommand>();
+
+  registerPermissionSystemCommand(
+    {
+      registerCommand(name: string, definition: RegisteredCommand) {
+        commands.set(name, definition);
+      },
+    } as never,
+    controller,
+  );
+
+  const yolo = commands.get("yolo");
+  expect(yolo).toBeDefined();
+  if (!yolo) throw new Error("/yolo command was not registered");
+  expect(yolo.description).toContain("YOLO");
+  expect(yolo.getArgumentCompletions?.("o")?.map((item) => item.value)).toEqual(
+    ["on", "off"],
+  );
+
+  const ctx = createCommandContext(true);
+  await yolo.handler("", ctx.ctx);
+  expect(config.yoloMode).toBe(true);
+  expect(lastNotification(ctx.notifications).message).toBe("YOLO mode on.");
+
+  await yolo.handler("", ctx.ctx);
+  expect(config.yoloMode).toBe(false);
+  expect(lastNotification(ctx.notifications).message).toBe("YOLO mode off.");
+
+  await yolo.handler("on", ctx.ctx);
+  expect(config.yoloMode).toBe(true);
+
+  await yolo.handler("off", ctx.ctx);
+  expect(config.yoloMode).toBe(false);
+
+  await yolo.handler("wat", ctx.ctx);
+  expect(config.yoloMode).toBe(false);
+  expect(lastNotification(ctx.notifications).level).toBe("warning");
+  expect(lastNotification(ctx.notifications).message).toContain("Usage: /yolo");
+});
+
 test("permission-system command handlers manage config summary, persistence, and modal routing", async () => {
   const baseDir = mkdtempSync(join(tmpdir(), "pi-permission-system-command-"));
   const configPath = join(baseDir, "config.json");
