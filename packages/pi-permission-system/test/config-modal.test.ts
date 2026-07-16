@@ -86,6 +86,9 @@ test("permission-system command completions expose top-level config actions", ()
       save: (next) => {
         config = next;
       },
+      setSessionYoloMode: (next) => {
+        config = { ...config, yoloMode: next };
+      },
     };
     const controller = {
       config: configStore,
@@ -128,10 +131,14 @@ test("permission-system command completions expose top-level config actions", ()
 
 test("yolo command toggles yoloMode and accepts explicit on/off", async () => {
   let config: PermissionSystemExtensionConfig = { ...DEFAULT_EXTENSION_CONFIG };
+  const save = vi.fn((next: PermissionSystemExtensionConfig) => {
+    config = next;
+  });
   const configStore: CommandConfigStore = {
     current: () => config,
-    save: (next) => {
-      config = next;
+    save,
+    setSessionYoloMode: (next) => {
+      config = { ...config, yoloMode: next };
     },
   };
   const controller = {
@@ -169,11 +176,16 @@ test("yolo command toggles yoloMode and accepts explicit on/off", async () => {
   const ctx = createCommandContext(true);
   await yolo.handler("", ctx.ctx);
   expect(config.yoloMode).toBe(true);
-  expect(lastNotification(ctx.notifications).message).toBe("YOLO mode on.");
+  expect(lastNotification(ctx.notifications).message).toBe(
+    "YOLO mode on for this session.",
+  );
+  expect(save).not.toHaveBeenCalled();
 
   await yolo.handler("", ctx.ctx);
   expect(config.yoloMode).toBe(false);
-  expect(lastNotification(ctx.notifications).message).toBe("YOLO mode off.");
+  expect(lastNotification(ctx.notifications).message).toBe(
+    "YOLO mode off for this session.",
+  );
 
   await yolo.handler("on", ctx.ctx);
   expect(config.yoloMode).toBe(true);
@@ -219,6 +231,9 @@ test("permission-system command handlers manage config summary, persistence, and
           loadUnifiedConfig(configPath).config,
         );
         expect(config).not.toEqual(currentConfig);
+      },
+      setSessionYoloMode: (next) => {
+        config = { ...config, yoloMode: next };
       },
     };
     const controller = {
@@ -320,7 +335,11 @@ test("show output includes rule origins when getComposedRules is provided", asyn
   ];
 
   const controller = {
-    config: { current: () => config, save: () => {} } as CommandConfigStore,
+    config: {
+      current: () => config,
+      save: () => {},
+      setSessionYoloMode: () => {},
+    } as CommandConfigStore,
     configPath: "/fake/config.json",
     getActiveAgentConfigRules: () => composedRules,
   };
@@ -352,7 +371,11 @@ test("show output omits rule summary when getComposedRules is not provided", asy
   const config = { ...DEFAULT_EXTENSION_CONFIG, yoloMode: true };
 
   const controller = {
-    config: { current: () => config, save: () => {} } as CommandConfigStore,
+    config: {
+      current: () => config,
+      save: () => {},
+      setSessionYoloMode: () => {},
+    } as CommandConfigStore,
     configPath: "/fake/config.json",
     getActiveAgentConfigRules: () => [] as Ruleset,
   };

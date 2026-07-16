@@ -56,6 +56,7 @@ export interface CommandConfigStore extends ConfigReader {
     next: PermissionSystemExtensionConfig,
     ctx: ExtensionCommandContext,
   ): void;
+  setSessionYoloMode(yoloMode: boolean, ctx: ExtensionCommandContext): void;
 }
 
 /** Narrow view of the manager's resolved policy paths (for `logResolvedPaths`). */
@@ -81,6 +82,7 @@ export interface ConfigStoreDeps {
  */
 export class ConfigStore implements SessionConfigStore, CommandConfigStore {
   private config: PermissionSystemExtensionConfig;
+  private sessionYoloMode: boolean | undefined;
   private lastConfigWarning: string | null = null;
 
   constructor(private readonly deps: ConfigStoreDeps) {
@@ -105,7 +107,11 @@ export class ConfigStore implements SessionConfigStore, CommandConfigStore {
       cwd ?? "",
       EXTENSION_ROOT,
     );
-    const runtimeConfig = normalizePermissionSystemConfig(mergeResult.merged);
+    const mergedConfig = normalizePermissionSystemConfig(mergeResult.merged);
+    const runtimeConfig =
+      this.sessionYoloMode === undefined
+        ? mergedConfig
+        : { ...mergedConfig, yoloMode: this.sessionYoloMode };
     this.config = runtimeConfig;
 
     if (ctx?.hasUI) {
@@ -128,6 +134,13 @@ export class ConfigStore implements SessionConfigStore, CommandConfigStore {
       permissionReviewLog: runtimeConfig.permissionReviewLog,
       yoloMode: runtimeConfig.yoloMode,
     });
+  }
+
+  /** Override yolo mode for this live Pi session only. Does not touch config.json. */
+  setSessionYoloMode(yoloMode: boolean, ctx: ExtensionCommandContext): void {
+    this.sessionYoloMode = yoloMode;
+    this.config = { ...this.config, yoloMode };
+    syncPermissionSystemStatus(ctx, this.config);
   }
 
   /**
@@ -174,6 +187,7 @@ export class ConfigStore implements SessionConfigStore, CommandConfigStore {
       return;
     }
 
+    this.sessionYoloMode = undefined;
     this.config = normalized;
     syncPermissionSystemStatus(ctx, normalized);
     this.lastConfigWarning = null;

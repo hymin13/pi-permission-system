@@ -305,6 +305,33 @@ describe("ConfigStore", () => {
         "/extra/path",
       ]);
     });
+
+    it("keeps a session yolo override across refreshes", () => {
+      const { store } = makeStore();
+      store.setSessionYoloMode(true, makeCommandCtx());
+      mockLoadAndMergeConfigs.mockReturnValue({
+        merged: { ...DEFAULT_EXTENSION_CONFIG, yoloMode: false },
+        issues: [],
+      });
+      store.refresh();
+      expect(store.current().yoloMode).toBe(true);
+    });
+  });
+
+  // ── session-local yolo ─────────────────────────────────────────────────
+
+  describe("setSessionYoloMode()", () => {
+    it("updates current status without writing config.json", () => {
+      const { store } = makeStore();
+      const ctx = makeCommandCtx();
+      store.setSessionYoloMode(true, ctx);
+      expect(store.current().yoloMode).toBe(true);
+      expect(mockWriteFileSync).not.toHaveBeenCalled();
+      expect(mockSyncPermissionSystemStatus).toHaveBeenCalledWith(
+        ctx,
+        expect.objectContaining({ yoloMode: true }),
+      );
+    });
   });
 
   // ── save() ─────────────────────────────────────────────────────────────

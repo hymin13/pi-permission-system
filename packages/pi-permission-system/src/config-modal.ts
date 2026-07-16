@@ -253,8 +253,8 @@ function handleYoloCommand(
     return;
   }
 
-  controller.config.save({ ...current, yoloMode }, ctx);
-  ctx.ui.notify(`YOLO mode ${toOnOff(yoloMode)}.`, "info");
+  controller.config.setSessionYoloMode(yoloMode, ctx);
+  ctx.ui.notify(`YOLO mode ${toOnOff(yoloMode)} for this session.`, "info");
 }
 
 export function registerPermissionSystemCommand(
@@ -262,7 +262,7 @@ export function registerPermissionSystemCommand(
   controller: PermissionSystemConfigController,
 ): void {
   pi.registerCommand("yolo", {
-    description: "Toggle pi-permission-system YOLO mode",
+    description: "Toggle pi-permission-system YOLO mode for this session",
     getArgumentCompletions: (prefix) => {
       const normalized = prefix.trim().toLowerCase();
       return ON_OFF.flatMap((value) =>
