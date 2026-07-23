@@ -22,6 +22,7 @@ import { makeCheckResult } from "#test/helpers/handler-fixtures";
 const STRENGTH: Record<PermissionState, number> = {
   allow: 0,
   ask: 1,
+  always_ask: 1,
   deny: 2,
 };
 

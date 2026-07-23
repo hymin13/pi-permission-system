@@ -99,7 +99,7 @@
   },
   "$defs": {
     "permissionState": {
-      "description": "A permission decision: allow (permit silently), deny (block with error), or ask (prompt the user for confirmation).",
+      "description": "A permission decision: allow (permit silently), deny (block with error), ask (prompt the user for confirmation), or always_ask (prompt and preserve the ask policy even if Always Allow is clicked).",
       "oneOf": [
         {
           "const": "allow",
@@ -112,6 +112,10 @@
         {
           "const": "ask",
           "description": "Prompt the user for confirmation via the interactive UI before proceeding."
+        },
+        {
+          "const": "always_ask",
+          "description": "Prompt like ask, but Always Allow persistence should not overwrite this rule."
         }
       ]
     },

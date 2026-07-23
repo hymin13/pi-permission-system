@@ -1,4 +1,5 @@
 import type { PermissionPromptDecision } from "./permission-dialog";
+import type { PermissionState } from "./types";
 
 /** Result of applying the permission gate. */
 export type PermissionGateResult =
@@ -8,12 +9,12 @@ export type PermissionGateResult =
 /** Everything the gate needs — no direct dependency on ExtensionContext. */
 export interface PermissionGateParams {
   /** The resolved permission state from checkPermission(). */
-  state: "allow" | "deny" | "ask";
+  state: PermissionState;
 
   /** Whether the current context supports interactive prompts. */
   canConfirm: boolean;
 
-  /** Prompt the user for approval. Only called when state === "ask" and canConfirm is true. */
+  /** Prompt the user for approval. Only called when state is ask-like and canConfirm is true. */
   promptForApproval: () => Promise<PermissionPromptDecision>;
 
   /**
@@ -62,7 +63,7 @@ export async function applyPermissionGate(
     return { action: "block", reason: messages.denyReason };
   }
 
-  if (state === "ask") {
+  if (state === "ask" || state === "always_ask") {
     if (!canConfirm) {
       writeLog("permission_request.blocked", {
         ...logContext,

@@ -104,6 +104,19 @@ describe("describeBashPathGate", () => {
     expect(desc.preCheck?.state).toBe("ask");
   });
 
+  it("returns GateDescriptor when a token evaluates to always_ask", async () => {
+    const result = await describeGate(
+      makeTcc(),
+      makeResolver(
+        makeCheckResult({ state: "always_ask", matchedPattern: "*" }),
+      ),
+    );
+    expect(result).not.toBeNull();
+    expect(isGateDescriptor(result)).toBe(true);
+    const desc = result as GateDescriptor;
+    expect(desc.preCheck?.state).toBe("always_ask");
+  });
+
   it("descriptor includes triggering token in prompt message", async () => {
     const result = (await describeGate(
       makeTcc(),

@@ -180,7 +180,7 @@ export interface PermissionsCheckRequest {
  * service accessor module. See `PERMISSIONS_RPC_CHECK_CHANNEL` for details.
  */
 export interface PermissionsCheckReplyData {
-  result: "allow" | "deny" | "ask";
+  result: "allow" | "deny" | "ask" | "always_ask";
   matchedPattern: string | null;
   origin: string | null;
 }

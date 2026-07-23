@@ -2,7 +2,7 @@ import type {
   PermissionDecisionEvent,
   PermissionDecisionResolution,
 } from "#src/permission-events";
-import type { PermissionCheckResult } from "#src/types";
+import type { PermissionCheckResult, PermissionState } from "#src/types";
 
 /**
  * Derive the human-readable value for a decision event from a check result.
@@ -56,7 +56,7 @@ export function buildDecisionEvent(
  * @param canConfirm - Whether an interactive prompt was available.
  */
 export function deriveResolution(
-  state: "allow" | "deny" | "ask",
+  state: PermissionState,
   action: "allow" | "block",
   hasSession: boolean,
   canConfirm: boolean,
@@ -64,7 +64,7 @@ export function deriveResolution(
 ): PermissionDecisionResolution {
   if (state === "allow") return "policy_allow";
   if (state === "deny") return "policy_deny";
-  // state === "ask"
+  // ask-like state
   if (action === "allow") {
     if (autoApproved) return "auto_approved";
     return hasSession ? "user_approved_for_session" : "user_approved";

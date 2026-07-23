@@ -1,4 +1,4 @@
-export type PermissionState = "allow" | "deny" | "ask";
+export type PermissionState = "allow" | "deny" | "ask" | "always_ask";
 
 import type { RuleOrigin } from "./rule";
 

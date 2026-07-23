@@ -82,6 +82,10 @@ describe("isPermissionState", () => {
     expect(isPermissionState("ask")).toBe(true);
   });
 
+  test("returns true for 'always_ask'", () => {
+    expect(isPermissionState("always_ask")).toBe(true);
+  });
+
   test("returns false for unrecognized strings", () => {
     expect(isPermissionState("ALLOW")).toBe(false);
     expect(isPermissionState("permit")).toBe(false);

@@ -43,6 +43,12 @@ describe("shouldAutoApprovePermissionState", () => {
     ).toBe(true);
   });
 
+  test("returns false for always_ask even when yolo mode is on", () => {
+    expect(
+      shouldAutoApprovePermissionState("always_ask", makeConfig(true)),
+    ).toBe(false);
+  });
+
   test("returns false for 'ask' when yolo mode is off", () => {
     expect(shouldAutoApprovePermissionState("ask", makeConfig(false))).toBe(
       false,

@@ -71,6 +71,15 @@ describe("applyPermissionGate", () => {
       });
     });
 
+    it("treats always_ask like ask when confirmation is unavailable", async () => {
+      const params = makeParams({ state: "always_ask", canConfirm: false });
+      const result = await applyPermissionGate(params);
+      expect(result).toEqual({
+        action: "block",
+        reason: "No interactive UI available.",
+      });
+    });
+
     it("calls writeLog with confirmation_unavailable resolution", async () => {
       const params = makeParams({
         state: "ask",
@@ -156,6 +165,21 @@ describe("applyPermissionGate", () => {
       const promptForApproval = vi.fn().mockResolvedValue(decision);
       const params = makeParams({
         state: "ask",
+        canConfirm: true,
+        promptForApproval,
+      });
+      const result = await applyPermissionGate(params);
+      expect(result).toEqual({ action: "allow" });
+    });
+
+    it("treats always_ask like ask when the user approves", async () => {
+      const decision: PermissionPromptDecision = {
+        approved: true,
+        state: "approved",
+      };
+      const promptForApproval = vi.fn().mockResolvedValue(decision);
+      const params = makeParams({
+        state: "always_ask",
         canConfirm: true,
         promptForApproval,
       });

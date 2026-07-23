@@ -62,6 +62,12 @@ describe("deriveResolution", () => {
     expect(deriveResolution("ask", "allow", false, true)).toBe("user_approved");
   });
 
+  it("returns user_approved for always_ask + allow without session", () => {
+    expect(deriveResolution("always_ask", "allow", false, true)).toBe(
+      "user_approved",
+    );
+  });
+
   it("returns user_approved_for_session for ask + allow with session", () => {
     expect(deriveResolution("ask", "allow", true, true)).toBe(
       "user_approved_for_session",

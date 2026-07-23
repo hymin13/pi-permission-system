@@ -35,7 +35,12 @@ export function normalizeOptionalPositiveInt(raw: unknown): number | undefined {
 }
 
 export function isPermissionState(value: unknown): value is PermissionState {
-  return value === "allow" || value === "deny" || value === "ask";
+  return (
+    value === "allow" ||
+    value === "deny" ||
+    value === "ask" ||
+    value === "always_ask"
+  );
 }
 
 /**

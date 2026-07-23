@@ -25,6 +25,18 @@ describe("normalizeFlatConfig", () => {
       ]);
     });
 
+    test("always_ask string shorthand maps directly to a rule", () => {
+      const result = normalizeFlatConfig({ bash: "always_ask" });
+      expect(result).toEqual([
+        {
+          surface: "bash",
+          pattern: "*",
+          action: "always_ask",
+          origin: "builtin",
+        },
+      ]);
+    });
+
     test("external_directory string shorthand maps directly to its surface", () => {
       const result = normalizeFlatConfig({ external_directory: "ask" });
       expect(result).toEqual([
@@ -51,7 +63,7 @@ describe("normalizeFlatConfig", () => {
   describe("object pattern map", () => {
     test("object value produces one rule per pattern", () => {
       const result = normalizeFlatConfig({
-        bash: { "*": "ask", "git *": "allow" },
+        bash: { "*": "ask", "git *": "allow", "rm *": "always_ask" },
       });
       expect(result).toEqual([
         { surface: "bash", pattern: "*", action: "ask", origin: "builtin" },
@@ -59,6 +71,12 @@ describe("normalizeFlatConfig", () => {
           surface: "bash",
           pattern: "git *",
           action: "allow",
+          origin: "builtin",
+        },
+        {
+          surface: "bash",
+          pattern: "rm *",
+          action: "always_ask",
           origin: "builtin",
         },
       ]);

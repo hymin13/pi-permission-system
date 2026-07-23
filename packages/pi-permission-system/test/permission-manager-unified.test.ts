@@ -364,6 +364,21 @@ describe("checkPermission — source derivation and matchedPattern", () => {
       expect(result.command).toBe("");
       expect(result.matchedPattern).toBeUndefined();
     });
+
+    it("returns always_ask for matching bash rules", () => {
+      const { manager, cleanup } = makeManagerWithConfig({
+        "*": "ask",
+        bash: { "rm *": "always_ask" },
+      });
+      try {
+        const result = checkTool(manager, "bash", { command: "rm -rf build" });
+        expect(result.state).toBe("always_ask");
+        expect(result.source).toBe("bash");
+        expect(result.matchedPattern).toBe("rm *");
+      } finally {
+        cleanup();
+      }
+    });
   });
 
   describe("mcp surface", () => {

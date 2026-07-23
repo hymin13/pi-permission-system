@@ -75,7 +75,7 @@ export function describeBashPathGate(
       uncovered.push({ token, path, check });
       break; // Short-circuit on deny.
     }
-    if (check.state === "ask") {
+    if (check.state === "ask" || check.state === "always_ask") {
       uncovered.push({ token, path, check });
     }
   }

@@ -4,11 +4,12 @@ import type { PermissionCheckResult, PermissionState } from "#src/types";
 const RESTRICTIVENESS: Record<PermissionState, number> = {
   allow: 0,
   ask: 1,
+  always_ask: 1,
   deny: 2,
 };
 
 /**
- * Select the most restrictive permission result from a list (deny > ask > allow).
+ * Select the most restrictive permission result from a list (deny > ask/always_ask > allow).
  *
  * The first occurrence wins on ties, so a caller passing results in candidate
  * order receives the earliest worst case. Returns `undefined` for an empty list.
