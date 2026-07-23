@@ -36,6 +36,7 @@ const COMMAND_ENUM_DESCEND = new Set([
   "list",
   "pipeline",
   "redirected_statement",
+  "compound_statement",
 ]);
 
 /**
@@ -76,8 +77,8 @@ const NESTED_EXECUTION_CONTEXTS = new Map<string, BashCommandContext>([
  * subshells (`( … )`) — emitting each inner command as its own unit *in
  * addition to* the enclosing command, since those inner commands really execute
  * (#306).
- * Control-flow bodies and `{ … }` brace groups are emitted whole without
- * descending (deferred).
+ * Brace groups (`{ … }`) are syntax only, so enumeration descends into their
+ * real commands instead of prompting for a synthetic `{...}` command.
  *
  * The enclosing command/subshell is always still emitted whole, so adding the
  * nested units can only ever produce a more-restrictive decision, never weaker.
@@ -126,8 +127,8 @@ function collectCommandsInto(
     return;
   }
 
-  // Any other named statement (compound_statement `{ … }`, if/while/for/case,
-  // function_definition): emit whole, do not descend — deferred (#306).
+  // Any other named statement (if/while/for/case/function_definition): emit
+  // whole, do not descend — deferred (#306).
   out.push(makeUnit(node.text, context));
 }
 

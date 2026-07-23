@@ -480,6 +480,17 @@ describe("BashProgram", () => {
       ]);
     });
 
+    it("descends into brace groups instead of prompting for a synthetic group command", async () => {
+      const program = await BashProgram.parse(
+        "{\n  echo ok\n  docker ps\n}",
+        normalizer,
+      );
+      expect(program.commands()).toEqual([
+        { text: "echo ok" },
+        { text: "docker ps" },
+      ]);
+    });
+
     it("emits a bare subshell whole and descends into it", async () => {
       const program = await BashProgram.parse("( rm -rf foo )", normalizer);
       expect(program.commands()).toEqual([
