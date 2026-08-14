@@ -265,6 +265,24 @@ describe("GateRunner — descriptor path", () => {
     );
   });
 
+  it("[regression for PWA Always allow] projects descriptor session approval to the prompt", async () => {
+    const { runner, deps } = makeGateRunner({
+      resolveResult: makeCheckResult({ state: "ask", matchedPattern: "*" }),
+    });
+    await runner.run(
+      makeDescriptor({
+        sessionApproval: SessionApproval.single("bash", "test *"),
+      }),
+      null,
+      "tc-42",
+    );
+    expect(deps.prompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionApproval: { surface: "bash", patterns: ["test *"] },
+      }),
+    );
+  });
+
   it("uses distinct prompt IDs for distinct gates in one tool call", async () => {
     const { runner, deps } = makeGateRunner({
       resolveResult: makeCheckResult({ state: "ask", matchedPattern: "*" }),

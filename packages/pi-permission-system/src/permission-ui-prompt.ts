@@ -28,6 +28,7 @@ export interface DirectPromptInput {
   path?: string;
   command?: string;
   target?: string;
+  sessionApproval?: { surface: string; patterns: readonly string[] };
 }
 
 /** Input for a `permissions:rpc:prompt` forwarded UI prompt. */
@@ -86,6 +87,7 @@ export function buildDirectUiPrompt(
     value: directValue(input),
     agentName: input.agentName,
     message: input.message,
+    ...(input.sessionApproval ? { sessionApproval: input.sessionApproval } : {}),
     forwarding: null,
   };
 }

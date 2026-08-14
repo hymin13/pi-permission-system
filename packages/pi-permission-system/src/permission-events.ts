@@ -107,6 +107,8 @@ export interface ForwardedPromptContext {
  * consumers should read defensively.
  */
 export interface PermissionUiPromptEvent {
+  /** Canonical rule(s) permission-system would record for session approval. */
+  sessionApproval?: { surface: string; patterns: readonly string[] };
   /** Unique ID for the permission request being prompted. */
   requestId: string;
   /** Prompt origin. */

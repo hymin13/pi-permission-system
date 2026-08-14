@@ -28,6 +28,23 @@ describe("buildDirectUiPrompt", () => {
     });
   });
 
+  it("[regression for PWA Always allow] carries the canonical session approval", () => {
+    expect(
+      buildDirectUiPrompt({
+        requestId: "req-approval",
+        source: "tool_call",
+        agentName: null,
+        message: "Allow test?",
+        surface: "bash",
+        value: 'test "$(curl --fail)" = ok',
+        sessionApproval: { surface: "bash", patterns: ["test *"] },
+      }),
+    ).toMatchObject({
+      surface: "bash",
+      sessionApproval: { surface: "bash", patterns: ["test *"] },
+    });
+  });
+
   it("normalizes a skill prompt to the skill surface and skill-name value", () => {
     expect(
       buildDirectUiPrompt({

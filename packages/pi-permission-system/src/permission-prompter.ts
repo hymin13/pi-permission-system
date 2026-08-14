@@ -36,6 +36,8 @@ export interface PromptPermissionDetails {
   toolInputPreview?: string;
   /** Override label for the "for this session" dialog option. */
   sessionLabel?: string;
+  /** Canonical rule(s) recorded when the user selects session approval. */
+  sessionApproval?: { surface: string; patterns: readonly string[] };
 }
 
 /** Mockable contract for permission prompting. */
