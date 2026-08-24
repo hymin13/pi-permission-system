@@ -381,6 +381,7 @@ describe("PermissionPrompter", () => {
       const details = makeDetails({
         toolName: "bash",
         command: "git push",
+        sessionApproval: { surface: "bash", patterns: ["git push *"] },
       });
 
       await prompter.prompt(makeCtx(false), details);
@@ -389,7 +390,12 @@ describe("PermissionPrompter", () => {
         expect.anything(),
         expect.any(String),
         undefined,
-        { source: "tool_call", surface: "bash", value: "git push" },
+        {
+          source: "tool_call",
+          surface: "bash",
+          value: "git push",
+          sessionApproval: { surface: "bash", patterns: ["git push *"] },
+        },
       );
     });
 

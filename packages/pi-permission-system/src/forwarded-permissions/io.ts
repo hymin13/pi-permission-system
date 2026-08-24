@@ -42,6 +42,27 @@ function asNullableDisplayString(value: unknown): string | null | undefined {
   return undefined;
 }
 
+function asSessionApproval(
+  value: unknown,
+): { surface: string; patterns: string[] } | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const approval = value as { surface?: unknown; patterns?: unknown };
+  if (
+    typeof approval.surface !== "string" ||
+    !approval.surface ||
+    !Array.isArray(approval.patterns)
+  )
+    return undefined;
+  const patterns = approval.patterns
+    .filter((pattern): pattern is string => typeof pattern === "string")
+    .map((pattern) => pattern.slice(0, 4000).trim())
+    .filter(Boolean)
+    .slice(0, 16);
+  return patterns.length
+    ? { surface: approval.surface.slice(0, 400), patterns }
+    : undefined;
+}
+
 export function formatUnknownErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -324,6 +345,7 @@ export function readForwardedPermissionRequest(
       source: asUiPromptSource(parsed.source),
       surface: asNullableDisplayString(parsed.surface),
       value: asNullableDisplayString(parsed.value),
+      sessionApproval: asSessionApproval(parsed.sessionApproval),
       yoloAutoApprove:
         typeof parsed.yoloAutoApprove === "boolean"
           ? parsed.yoloAutoApprove

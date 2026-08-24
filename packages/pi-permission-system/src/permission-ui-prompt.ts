@@ -52,6 +52,8 @@ export interface ForwardedPromptInput {
   surface?: string | null;
   /** Original normalized value, when the forwarded request carries it. */
   value?: string | null;
+  /** Canonical session-approval patterns from the child permission gate. */
+  sessionApproval?: { surface: string; patterns: readonly string[] };
 }
 
 /** Normalized display surface for a direct prompt. */
@@ -123,6 +125,9 @@ export function buildForwardedUiPrompt(
     source: input.source ?? "tool_call",
     surface: input.surface ?? null,
     value: input.value ?? null,
+    ...(input.sessionApproval
+      ? { sessionApproval: input.sessionApproval }
+      : {}),
     agentName: input.requesterAgentName,
     message: input.message,
     forwarding: {

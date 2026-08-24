@@ -114,6 +114,9 @@ export class PermissionPrompter implements PermissionPrompterApi {
         source: uiPrompt.source,
         surface: uiPrompt.surface,
         value: uiPrompt.value,
+        ...(uiPrompt.sessionApproval
+          ? { sessionApproval: uiPrompt.sessionApproval }
+          : {}),
         ...(isYoloAutoApprovalEligible(details)
           ? {}
           : { yoloAutoApprove: false }),

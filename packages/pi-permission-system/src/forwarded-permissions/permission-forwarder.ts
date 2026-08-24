@@ -414,6 +414,7 @@ export class PermissionForwarder implements ApprovalRequester, InboxProcessor {
             source: forwarded.source,
             surface: forwarded.surface,
             value: forwarded.value,
+            sessionApproval: forwarded.sessionApproval,
             yoloAutoApprove: forwarded.yoloAutoApprove,
           }
         : {}),
@@ -538,6 +539,7 @@ export class PermissionForwarder implements ApprovalRequester, InboxProcessor {
               source: request.source ?? null,
               surface: request.surface ?? null,
               value: request.value ?? null,
+              sessionApproval: request.sessionApproval,
             }),
           );
         }

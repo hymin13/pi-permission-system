@@ -129,12 +129,14 @@ describe("buildForwardedUiPrompt", () => {
         source: "tool_call",
         surface: "bash",
         value: "git push",
+        sessionApproval: { surface: "bash", patterns: ["git push *"] },
       }),
     ).toEqual({
       requestId: "req-fwd",
       source: "tool_call",
       surface: "bash",
       value: "git push",
+      sessionApproval: { surface: "bash", patterns: ["git push *"] },
       agentName: "Explore",
       message: "Subagent 'Explore' requested permission.\n\nAllow git push?",
       forwarding: {

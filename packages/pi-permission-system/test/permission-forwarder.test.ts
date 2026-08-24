@@ -200,6 +200,7 @@ describe("processInbox", () => {
           source: "tool_call",
           surface: "bash",
           value: "git push",
+          sessionApproval: { surface: "bash", patterns: ["git push *"] },
         }),
         "utf-8",
       );
@@ -236,6 +237,7 @@ describe("processInbox", () => {
           source: "tool_call",
           surface: "bash",
           value: "git push",
+          sessionApproval: { surface: "bash", patterns: ["git push *"] },
           agentName: "Explore",
           message: expect.stringContaining("Allow git push?"),
           forwarding: {
