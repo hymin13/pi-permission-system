@@ -13,6 +13,7 @@ import type {
 } from "#src/permission-dialog";
 import {
   emitUiPromptEvent,
+  emitUiPromptTransport,
   type PermissionEventBus,
 } from "#src/permission-events";
 import {
@@ -528,21 +529,18 @@ export class PermissionForwarder implements ApprovalRequester, InboxProcessor {
       );
       try {
         const forwardedMessage = formatForwardedPermissionPrompt(request);
-        if (this.events) {
-          emitUiPromptEvent(
-            this.events,
-            buildForwardedUiPrompt({
-              requestId: request.id,
-              message: forwardedMessage,
-              requesterAgentName: request.requesterAgentName || null,
-              requesterSessionId: request.requesterSessionId || null,
-              source: request.source ?? null,
-              surface: request.surface ?? null,
-              value: request.value ?? null,
-              sessionApproval: request.sessionApproval,
-            }),
-          );
-        }
+        const uiPrompt = buildForwardedUiPrompt({
+          requestId: request.id,
+          message: forwardedMessage,
+          requesterAgentName: request.requesterAgentName || null,
+          requesterSessionId: request.requesterSessionId || null,
+          source: request.source ?? null,
+          surface: request.surface ?? null,
+          value: request.value ?? null,
+          sessionApproval: request.sessionApproval,
+        });
+        if (this.events) emitUiPromptEvent(this.events, uiPrompt);
+        emitUiPromptTransport(ctx.ui, uiPrompt);
         decision = await this.requestPermissionDecisionFromUi(
           ctx.ui,
           "Permission Required (Subagent)",

@@ -4,6 +4,7 @@ import type { ApprovalRequester } from "./forwarded-permissions/permission-forwa
 import type { PermissionPromptDecision } from "./permission-dialog";
 import {
   emitUiPromptEvent,
+  emitUiPromptTransport,
   type PermissionEventBus,
 } from "./permission-events";
 import { buildDirectUiPrompt } from "./permission-ui-prompt";
@@ -104,6 +105,7 @@ export class PermissionPrompter implements PermissionPrompterApi {
     const uiPrompt = buildDirectUiPrompt(details);
     if (ctx.hasUI) {
       emitUiPromptEvent(this.deps.events, uiPrompt);
+      emitUiPromptTransport(ctx.ui, uiPrompt);
     }
 
     const decision = await this.deps.forwarder.requestApproval(

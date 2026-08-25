@@ -19,6 +19,7 @@ export type PermissionPromptDecision = {
 export interface PermissionDecisionUi {
   select(title: string, options: string[]): Promise<string | undefined>;
   input(title: string, placeholder?: string): Promise<string | undefined>;
+  notify?(message: string, type?: "info" | "warning" | "error"): void;
 }
 
 const APPROVE_OPTION = "Yes";

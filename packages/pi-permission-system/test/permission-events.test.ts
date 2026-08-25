@@ -20,6 +20,7 @@ import {
   emitDecisionEvent,
   emitReadyEvent,
   emitUiPromptEvent,
+  emitUiPromptTransport,
   PERMISSIONS_DECISION_CHANNEL,
   PERMISSIONS_PROTOCOL_VERSION,
   PERMISSIONS_READY_CHANNEL,
@@ -116,15 +117,29 @@ describe("emitUiPromptEvent", () => {
     expect(bus.emit.mock.calls[0][1]).toEqual(event);
   });
 
-  it("swallows event bus errors because UI prompt broadcasts are observational", () => {
-    const bus = {
-      emit: vi.fn(() => {
-        throw new Error("listener failed");
-      }),
-      on: vi.fn().mockReturnValue(() => undefined),
-    };
+  it("carries structured metadata over the RPC-visible notify surface", () => {
+    const notify = vi.fn();
+    const event = makeUiPromptEvent({
+      sessionApproval: { surface: "bash", patterns: ["git *"] },
+    });
+    emitUiPromptTransport({ notify }, event);
+    expect(notify).toHaveBeenCalledWith(
+      expect.stringContaining(JSON.stringify(event)),
+      "info",
+    );
+  });
 
-    expect(() => emitUiPromptEvent(bus, makeUiPromptEvent())).not.toThrow();
+  it("swallows UI transport errors because the dialog is authoritative", () => {
+    expect(() =>
+      emitUiPromptTransport(
+        {
+          notify: () => {
+            throw new Error("listener failed");
+          },
+        },
+        makeUiPromptEvent(),
+      ),
+    ).not.toThrow();
   });
 });
 

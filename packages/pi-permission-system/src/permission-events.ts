@@ -27,6 +27,10 @@ export const PERMISSIONS_PROTOCOL_VERSION = 1;
 /** Emitted at `session_start`, after the service is published. */
 export const PERMISSIONS_READY_CHANNEL = "permissions:ready";
 
+/** Private RPC notification prefix used to carry prompt metadata to hosts. */
+export const PERMISSIONS_UI_PROMPT_TRANSPORT_PREFIX =
+  "yellow-pi:permission-ui-prompt:";
+
 /** Emitted when a permission request is committed to the active UI prompt path. */
 export const PERMISSIONS_UI_PROMPT_CHANNEL = "permissions:ui_prompt";
 
@@ -245,6 +249,21 @@ export function emitUiPromptEvent(
   } catch {
     // UI-prompt broadcasts are observational. A consumer failure must not block
     // the permission dialog itself.
+  }
+}
+
+/** Carry the same structured prompt over Pi's RPC-visible UI surface. */
+export function emitUiPromptTransport(
+  ui: { notify?: (message: string, type?: "info") => void },
+  event: PermissionUiPromptEvent,
+): void {
+  try {
+    ui.notify?.(
+      `${PERMISSIONS_UI_PROMPT_TRANSPORT_PREFIX}${JSON.stringify(event)}`,
+      "info",
+    );
+  } catch {
+    // Transport is observational. A throwing UI adapter must not block the dialog.
   }
 }
 
